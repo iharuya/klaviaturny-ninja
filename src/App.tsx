@@ -2,7 +2,7 @@ import { Keyboard } from '@/components/keyboard'
 import { type FC, useCallback, useEffect } from 'react'
 import { useGame } from './hooks/game'
 import { useKeyboard } from './hooks/keyboard'
-import { isCharacter } from './lib/characters'
+import { isCharacter, usKeyToRuChar } from './lib/characters'
 import { cn } from './lib/cn'
 
 export const App: FC = () => {
@@ -13,7 +13,6 @@ export const App: FC = () => {
   const press = useKeyboard((state) => state.press)
   const unpress = useKeyboard((state) => state.unpress)
   const input = useGame((state) => state.input)
-  const dojo = useGame((state) => state.dojo)
   const currentInput = useGame((state) => state.currentInput)
 
   const handleKeyDown = useCallback(
@@ -34,8 +33,41 @@ export const App: FC = () => {
         return
       }
 
+      // Performance optimization
       if (event.repeat) {
-        // Performance optimization
+        return
+      }
+
+      // ========================
+      // Period is in different place on Russian/US keyboard
+      // So we need to handle it separately
+      // ========================
+
+      // RU Keyboard
+      if (code === 'Slash' && key === '.') {
+        press('.')
+        input('.')
+        return
+      }
+
+      // RU Keyboard
+      if (code === 'Period' && key === 'ю') {
+        press('ю')
+        input('ю')
+        return
+      }
+
+      // US Keyboard
+      if (code === 'Slash' && key === '/') {
+        press('.')
+        input('.')
+        return
+      }
+
+      // US Keyboard
+      if (code === 'Period' && key === '.') {
+        press('ю')
+        input('ю')
         return
       }
 
@@ -44,10 +76,13 @@ export const App: FC = () => {
         input(key)
         return
       }
-      // if (usKeyToRuChar.has(key)) {
-      //   press(usKeyToRuChar.get(key) as RussianCharacter)
-      //   return
-      // }
+      if (usKeyToRuChar.has(key)) {
+        // biome-ignore lint/style/noNonNullAssertion: it's ok man
+        const ruKey = usKeyToRuChar.get(key)!
+        press(ruKey)
+        input(ruKey)
+        return
+      }
     },
     [shift, press, input],
   )
@@ -75,7 +110,12 @@ export const App: FC = () => {
   return (
     <div className="py-16">
       <div className="flex justify-center mb-2">
-        <pre>{JSON.stringify({ dojo, currentInput }, null, 2)}</pre>
+        <div className="bg-slate-100 px-8 py-4 rounded-xl w-[750px] min-h-[60px] text-center">
+          <pre className="text-xl leading-8 font-bold break-words whitespace-break-spaces">
+            {currentInput}
+            <div className="inline-block w-[2px] h-5 translate-y-1 ml-[1px] bg-black animate-cursor duration-75" />
+          </pre>
+        </div>
       </div>
       <div className="flex justify-center mb-8">
         <Keyboard />

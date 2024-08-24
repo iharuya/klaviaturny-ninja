@@ -1,5 +1,5 @@
 import { useKeyboard } from '@/hooks/keyboard'
-import type { RussianLowerCharacter } from '@/lib/characters'
+import { type RussianLowerCharacter, ruCharToUsKey } from '@/lib/characters'
 import { cn } from '@/lib/cn'
 import { type FC, useMemo } from 'react'
 
@@ -16,11 +16,11 @@ export const RussianKey: FC<Props> = ({ character, className }) => {
   )
   const isShiftPressed = useKeyboard((state) => state.isShiftPressed)
   const upper = useMemo(() => character.toLocaleUpperCase(), [character])
-  const lower = useMemo(() => character.toLocaleLowerCase(), [character])
   const display = useMemo(
-    () => (isShiftPressed ? upper : lower),
-    [isShiftPressed, upper, lower],
+    () => (isShiftPressed ? upper : character),
+    [isShiftPressed, upper, character],
   )
+  const usKey = useMemo(() => ruCharToUsKey.get(character), [character])
 
   return (
     <div
@@ -32,9 +32,12 @@ export const RussianKey: FC<Props> = ({ character, className }) => {
       )}
     >
       <div className="flex flex-col h-full justify-center items-center">
-        <span className="text-[#546FA4] font-extrabold text-lg leading-5">
+        <span className="text-[#546FA4] font-extrabold text-lg leading-6">
           {display}
         </span>
+        {usKey && (
+          <span className="text-[#546FA4] text-xs leading-3">{usKey}</span>
+        )}
       </div>
     </div>
   )
